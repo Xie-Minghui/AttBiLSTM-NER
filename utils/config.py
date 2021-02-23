@@ -8,6 +8,7 @@
 file description:：
 
 """
+import argparse
 
 
 class LSTMConfig:
@@ -30,3 +31,15 @@ class LSTMConfig:
         self.num_layers = num_layers
         self.dropout = dropout
         self.tag_size = tag_size
+
+
+def args_parser():
+    parser = argparse.ArgumentParser(description='AttBiLSTM的配置')
+    parser.add_argument('-e', '--epochs', help='Epochs Number', type=int)
+    parser.add_argument('-ep', '--eval_period', help='Eval Period', type=int)
+    args = vars(parser.parse_args())
+    
+    return args
+
+
+args = args_parser()

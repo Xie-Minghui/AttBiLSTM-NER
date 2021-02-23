@@ -27,4 +27,3 @@ class AttBiLSTM4NER(nn.Modules):
         
         return logsoft
         
-    
