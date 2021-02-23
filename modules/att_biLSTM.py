@@ -10,6 +10,7 @@ file description:：
 """
 import torch
 import torch.nn as nn
+torch.manual_seed(1)  # 使用相同的初始化种子，保证每次初始化结果一直，便于调试
 
 
 class Attention(nn.Modules):
@@ -18,9 +19,9 @@ class Attention(nn.Modules):
     
     def forward(self, H):
         M = torch.tanh(H)  # H [batch_size, sentence_length, hidden_dim_lstm]
-        attention_prob = torch.matmul(M, self.query.transpose(-1,-2))  # [batch_size, sentence_length, 1]
+        attention_prob = torch.matmul(M, self.query.transpose(-1, -2))  # [batch_size, sentence_length, 1]
         alpha = nn.Softmax(attention_prob)
-        attention_output = torch.matmul(alpha.transpose(-1,-2), H)  # [batch_size, 1, hidden_dim_lstm]
+        attention_output = torch.matmul(alpha.transpose(-1, -2), H)  # [batch_size, 1, hidden_dim_lstm]
         
         return attention_output
         
@@ -35,7 +36,7 @@ class AttBiLSTM(nn.Modules):
         
         # 定义网络层
         self.word_embedding = nn.Embedding(config.vocab_size, config.embedding_dim, padding_idx=config.pad_token_id)
-        self.gru = nn.GRU(config.embedding_dim, config.hidden_dim_lstm, batch_first=True, bidirectional=True)
+        self.gru = nn.GRU(config.embedding_dim, config.hidden_dim_lstm, batch_first=True, bidirectional=True, dropout=config.dropout)
         self.attention_layer = Attention(config)
         
     def forward(self, x):

@@ -17,7 +17,9 @@ class LSTMConfig:
                  pad_token_id=0,
                  hidden_dim_lstm=128,
                  batch_size=8,
-                 num_layers=1
+                 num_layers=1,  # lstm的层数
+                 dropout=0.1,
+                 tag_size=10  # 标记的种类
                  ):
         
         self.embedding_dim = embedding_dim
@@ -26,3 +28,5 @@ class LSTMConfig:
         self.hidden_dim_lstm = hidden_dim_lstm
         self.batch_size = batch_size
         self.num_layers = num_layers
+        self.dropout = dropout
+        self.tag_size = tag_size
