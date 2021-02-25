@@ -83,14 +83,3 @@ class Trainer:
         self.model.train(True)
         
         return loss_total
-            
-    
-    
-        
-        
-        
-    
-    
-    
-        
-        
