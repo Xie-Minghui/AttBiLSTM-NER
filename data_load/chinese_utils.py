@@ -9,17 +9,18 @@ file description:：
 每个字的表示由  字向量  相对实体1的位置向量 相对实体2的位置向量 三者组成
 
 """
-from collections import defaultdict, Iterable
+from collections.abc import Iterable
+from collections import defaultdict
 import torch
 import copy
 
 
 def get_relation2id():
     relation2id = {}
-    with open('./data/chinese/relation2id.txt', 'r') as f:
+    with open('../data/chinese/relation2id.txt', 'r') as f:
         for line in f:
             line = line.rstrip().split()
-            relation2id[line[0]] = line[1]
+            relation2id[line[0]] = int(line[1])
             
     return relation2id
 
@@ -28,9 +29,9 @@ def get_pos_info(num_data):
     relation2id = get_relation2id()
     count_relation = defaultdict(int)
     
-    data_sentences, positionE1, positionE2, labels = [], [], [], []
+    sentences, positionE1, positionE2, labels = [], [], [], []
     
-    with open('./data/chinese/train.txt', 'r') as f:
+    with open('../data/chinese/train.txt', 'r') as f:
         for line in f:
             line = line.rstrip().split()
             if count_relation[line[2]] < num_data:
@@ -46,19 +47,19 @@ def get_pos_info(num_data):
                     position1.append(i-index1)
                     position2.append(i-index2)
                 
-                data_sentences.append(sentence)
+                sentences.append(sentence)
                 positionE1.append(position1)
                 positionE2.append(position2)
                 labels.append(relation2id[line[2]])
     
-    return data_sentences, positionE1, positionE2, labels
+    return sentences, positionE1, positionE2, labels
 
 
 def flatten(items, ignore_types=(str, bytes)):
     # 将一个多层嵌套的序列展开成一个单层列表
     for x in items:
         if isinstance(x, Iterable) and not isinstance(x, ignore_types):
-            yield flatten(x)
+            yield from flatten(x)
         else:
             yield x
 
@@ -67,14 +68,14 @@ class Dataset(torch.utils.data.Dataset):
     def __init__(self, data, word2id):
         self.data = copy.deepcopy(data)
         self.word2id = word2id
-        self.len_total = len(data['data_sentences'])
+        self.len_total = len(data['sentences'])
         
     def __getitem__(self,index):
-        sentence = self.data['data_sentences'][index]
-        sentence = self.change_word2id(sentence)
-        position1 = self.data['positionE1'][index]
-        position2 = self.data['positionE2'][index]
-        label = self.data['labels'][index]
+        sentences = self.data['sentences'][index]
+        sentences = self.change_word2id(sentences)
+        positionE1 = self.data['positionE1'][index]
+        positionE2 = self.data['positionE2'][index]
+        labels = self.data['labels'][index]
         
         data_info = {}
         for key in self.data.keys():
@@ -105,7 +106,7 @@ class Dataset(torch.utils.data.Dataset):
         for key in data[0].keys():
             items_info[key] = [d[key] for d in data]
         
-        sentences = merge(items_info['data_sentences'])
+        sentences = merge(items_info['sentences'])
         positionE1 = merge(items_info['positionE1'])
         positionE2 = merge(items_info['positionE2'])
         
@@ -118,7 +119,7 @@ class Dataset(torch.utils.data.Dataset):
         data_info = {}
         for key in items_info.keys():
             try:
-                data_info[key] = locals[key]
+                data_info[key] = locals()[key]
             except KeyError:
                 print('{} cannot be found in locals()'.format(key))
         
@@ -136,12 +137,12 @@ def _cuda(x):
 
 
 def get_seqs(batch_size):
-    data_sentences, positionE1, positionE2, labels = get_pos_info(1500)
-    
-    words_all = flatten(data_sentences)
-    words_all = set(words_all)
-    words_all.add('UNK_TOKEN')
-    words_all.add('PAD_TOKEN')
+    sentences, positionE1, positionE2, labels = get_pos_info(15)
+    # print(sentences)
+    words_all = []
+    for x in flatten(sentences):
+        words_all.append(x)
+    words_all = list(set(words_all))
     
     word2id = dict(zip(words_all, range(len(words_all))))
     for i, word in enumerate(words_all):
@@ -150,7 +151,7 @@ def get_seqs(batch_size):
     word2id['PAD_TOKEN'] = 1
     # id2word = dict(zip(range(len(words_all)), words_all))
     
-    data = {'data_sentences': data_sentences, 'positionE1': positionE1, 'positionE2': positionE2, 'labels':labels}
+    data = {'sentences': sentences, 'positionE1': positionE1, 'positionE2': positionE2, 'labels': labels}
     
     dataset = Dataset(data, word2id)
     
@@ -158,8 +159,14 @@ def get_seqs(batch_size):
         dataset=dataset,
         batch_size=batch_size,
         collate_fn=dataset.collate_fn,
+        drop_last=True
     )
     
-    return  data_loader
+    return data_loader
 
+
+if __name__ == '__main__':
+    data_loader = get_seqs(8)
+    for item in data_loader:
+        print(item)
 
