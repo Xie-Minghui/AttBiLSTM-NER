@@ -20,7 +20,10 @@ class LSTMConfig:
                  batch_size=8,
                  num_layers=1,  # lstm的层数
                  dropout=0.1,
-                 tag_size=10  # 标记的种类
+                 tag_size=10,  # 标记的种类
+                 pretrained=False,
+                 pos_size=40,
+                 pos_dim=64
                  ):
         
         self.embedding_dim = embedding_dim
@@ -31,12 +34,16 @@ class LSTMConfig:
         self.num_layers = num_layers
         self.dropout = dropout
         self.tag_size = tag_size
+        self.pretrained = pretrained
+        self.pos_size = pos_size
+        self.pos_dim = pos_dim
 
 
 def args_parser():
     parser = argparse.ArgumentParser(description='AttBiLSTM的配置')
     parser.add_argument('-e', '--epochs', help='Epochs Number', type=int)
     parser.add_argument('-ep', '--eval_period', help='Eval Period', type=int)
+    parser.add_argument('-b', '--batch_size', help='Batch Size', type=int)
     args = vars(parser.parse_args())
     
     return args
