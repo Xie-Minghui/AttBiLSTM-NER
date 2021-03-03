@@ -34,7 +34,7 @@ class Trainer:
         self.test_dataset = test_dataset
 
         # 初始化优化器
-        self.optomizer = torch.optim.Adam(self.model.parameters(), lr=args['lr'])
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=args['lr'])
 
         # 学习率调控
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optomizer, factor=0.5, patience=3, min_lr=1e-3,
